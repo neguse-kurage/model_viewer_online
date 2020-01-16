@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>remoteSTL</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+	<script src="image.js"></script>
+</head>
+<body>
+	<ul id="messages"></ul>
+    <form id="message_form" action="#">
+      <input id="input_msg" autocomplete="off" /><button>Send</button>
+    </form>
+  <script>
+      var socketio = io();
+      $(function(){
+          $('#message_form').submit(function(){
+            socketio.emit('message', $('#input_msg').val());
+            $('#input_msg').val('');
+
+			////
+				var file = new File([""],"inu.png");
+				var reader = new FileReader();
+				reader.onload = function( event ) {
+    				// Data URLで読み込むとデータはbase64形式になっているので、そのまま送信する
+    				socketio.emit( 'image', event.target.result );
+ 				};
+				reader.readAsDataURL(file);
+			////
+
+            	return false;
+          	});
+          	socketio.on('message',function(msg){
+            $('#messages').append($('<li>').text(msg));
+          	});
+
+			////
+			socketio.on( 'image', function( imageData ) {
+      			if ( imageData ) {
+	        		var canvas = document.createElement( 'canvas' );
+	        		var ctx = canvas.getContext( '2d' );
+	        		var img = new Image();
+	        		img.src = imageData;
+	        		img.onload = function() {
+	          			// キャンバスに画像を描画
+	          			// ロードし終わってからでないとキャンバスに描画されない
+	          			canvas.width = img.width;
+	          			canvas.height = img.height
+	          			ctx.drawImage( img, 0, 0, 640, 480 );
+	          			// bodyにcanvasを追加
+	          			document.body.appendChild( canvas );
+	        		}
+      			}
+    		});
+			////
+
+        });
+    </script>
+</body>
+</html>
